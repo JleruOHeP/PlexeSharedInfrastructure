@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "location": "Australia Southeast",
+
+    "serviceBusName": "[concat('plexe-servicebus-', parameters('environment'))]"
+  },
+  "resources": [
+    {
+      "comments": "Main service bus",
+      "type": "Microsoft.ServiceBus/namespaces",
+      "name": "[variables('serviceBusName')]",
+      "sku": {
+          "name": "Standard",
+          "tier": "Standard"
+      },      
+      "apiVersion": "2017-04-01",
+      "location": "[variables('location')]",      
+      "scale": null,
+      "properties": {
+          "serviceBusEndpoint": "[concat('https://', variables('serviceBusName'),'.servicebus.windows.net:443/')]",
+          "status": "Active"
+      }
+    },
+    {
+      "comments": "Main service bus queue",
+      "type": "Microsoft.ServiceBus/namespaces/queues",
+      "name": "[concat(variables('serviceBusName'), '/', 'plexe-requests')]",
+      "apiVersion": "2017-04-01",
+      "location": "[variables('location')]",
+      "scale": null,
+      "properties": {
+        "defaultMessageTimeToLive": "P14D",
+        "maxSizeInMegabytes": 4096,
+        "requiresDuplicateDetection": true,
+        "duplicateDetectionHistoryTimeWindow": "PT10M",
+        "enableBatchedOperations": true,
+        "status": "Active",
+        "supportOrdering": true,
+        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+        "enablePartitioning": false,
+        "enableExpress": false
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', variables('serviceBusName'))]"
+      ]
+    }
+  ]
+}
